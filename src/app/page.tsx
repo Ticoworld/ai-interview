@@ -1,103 +1,168 @@
+"use client";
+import { useRef, useState } from "react";
+import Webcam from "react-webcam";
 import Image from "next/image";
+import Chat from "@/components/Chat";
+import QuestionList from "@/components/QuestionList";
+import { ScoreSummary } from "@/components/ScoreSummary";
+import VideoScoreDetailCircles from "@/components/VideoScoreDetailCircles";
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const webcamRef = useRef<Webcam>(null);
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setUploadedVideo(URL.createObjectURL(file));
+  };
+
+  const [activeQuestion, setActiveQuestion] = useState("3");
+
+  const questions = [
+    {
+      id: "1",
+      title: "Tell us about yourself?",
+      completed: true,
+    },
+    {
+      id: "2",
+      title: "Why do you think you are good at sales?",
+      completed: true,
+    },
+    {
+      id: "3",
+      title: "What is the biggest deal you have closed?",
+      completed: false,
+    },
+    {
+      id: "4",
+      title: "Why you choose this company?",
+      completed: false,
+    },
+    {
+      id: "5",
+      title: "What your expectation in...",
+      completed: false,
+    },
+  ];
+
+  const metrics = [
+    { label: "Professionalism", value: 80, color: "#10B981" },
+    { label: "Business Acumen", value: 90, color: "#10B981" },
+    { label: "Opportunistic", value: 65, color: "#F97316" },
+    { label: "Closing Technique", value: 85, color: "#10B981" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8 flex gap-6">
+      {/* Left Column - Main Content */}
+      <div className="flex-1 flex flex-col gap-6">
+        {/* Section 1: Camera Container */}
+        <div className="relative bg-white rounded-2xl shadow-2xl h-[60vh] overflow-hidden">
+          {/* Section 2: AI Interviewer Video */}
+          <div className="absolute top-4 right-4 w-[320px] z-10 shadow-xl rounded-xl overflow-hidden">
+            <video
+              autoPlay
+              loop
+              muted
+              className="w-full h-full object-cover"
+              src="/ai-interviewer.mp4"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          {/* Top-Left Profile */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
+            <div className="w-20 h-20 relative rounded-full border-4 border-white overflow-hidden shadow-lg">
+              <Image
+                src="/ai-interviewer.jpg"
+                alt="Candidate"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-500">Seo Jan Im</h2>
+              <p className="text-gray-300 mt-1">Talent</p>
+            </div>
+          </div>
+
+          {/* Camera/Video Area */}
+          <div className="h-full flex items-center justify-center bg-black">
+            {isCameraOn ? (
+              <Webcam
+                ref={webcamRef}
+                className="w-full h-full object-cover"
+                audio={false}
+                mirrored
+              />
+            ) : uploadedVideo ? (
+              <video
+                src={uploadedVideo}
+                className="w-full h-full object-contain"
+                controls
+              />
+            ) : (
+              <div className="text-center space-y-6">
+                <button
+                  onClick={() => setIsCameraOn(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-xl font-semibold transition-all"
+                >
+                  🎥 Start Live Camera
+                </button>
+                <label className="block text-gray-300">
+                  or{" "}
+                  <span className="text-blue-400 cursor-pointer underline">
+                    upload video
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                    />
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Ambition Statement */}
+          {/* <div className="absolute bottom-8 left-[40%] z-10 text-white max-w-2xl">
+            <p className="text-lg italic">
+              &quot;I&apos;m an extremely ambitious person which motivates me in
+              my professional life.&quot;
+            </p>
+          </div> */}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Bottom Row - Sections 3, 4, 5 */}
+        <div className="flex gap-6 h-[44vh]">
+          {/* Section 3: Question List (Placeholder) */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl p-6">
+            <QuestionList
+              questions={questions}
+              activeQuestion={activeQuestion}
+              setActiveQuestion={setActiveQuestion}
+            />
+          </div>
+
+          {/* Section 4: Score Summary (Placeholder) */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl p-6">
+            <ScoreSummary />
+          </div>
+
+          {/* Section 5: Metrics (Placeholder) */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl p-6">
+          <VideoScoreDetailCircles metrics={metrics} />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column - Section 6: Chat */}
+      <div className="w-[400px] h-[90vh]">
+        <Chat />
+      </div>
     </div>
   );
 }
